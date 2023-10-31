@@ -11,21 +11,16 @@
  import com.google.common.collect.Lists;
  import com.google.common.collect.Sets;
  import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-@@ -129,6 +131,13 @@
-             this.field_72697_d.clear();
-         }
+@@ -21,6 +23,8 @@
+ import net.minecraft.world.WorldServer;
+ import net.minecraft.world.chunk.Chunk;
  
-+        // Fix for chunks not updating after async updates CARPET-PUNCHSTER
-+        if(CarpetSettings.asyncPacketUpdatesFix) {
-+            for(PlayerChunkMapEntry entry : field_111193_e){
-+                entry.field_187287_g = 0;
-+            }
-+        }
++import static carpet.torus.TorusUtil.*;
 +
-         if (this.field_187312_l && i % 4L == 0L)
-         {
-             this.field_187312_l = false;
-@@ -215,9 +224,17 @@
+ public class PlayerChunkMap
+ {
+     private static final Predicate<EntityPlayerMP> field_187308_a = new Predicate<EntityPlayerMP>()
+@@ -215,9 +219,17 @@
  
              if (!worldprovider.func_76567_e())
              {
@@ -43,7 +38,7 @@
      }
  
      public boolean func_152621_a(int p_152621_1_, int p_152621_2_)
-@@ -232,20 +249,22 @@
+@@ -232,20 +244,22 @@
          return (PlayerChunkMapEntry)this.field_72700_c.get(func_187307_d(p_187301_1_, p_187301_2_));
      }
  
@@ -71,7 +66,7 @@
              }
  
              if (!playerchunkmapentry.func_187272_b())
-@@ -271,8 +290,16 @@
+@@ -271,8 +285,16 @@
  
      public void func_72683_a(EntityPlayerMP p_72683_1_)
      {
@@ -90,7 +85,7 @@
          p_72683_1_.field_71131_d = p_72683_1_.field_70165_t;
          p_72683_1_.field_71132_e = p_72683_1_.field_70161_v;
  
-@@ -280,7 +307,7 @@
+@@ -280,7 +302,7 @@
          {
              for (int l = j - this.field_72698_e; l <= j + this.field_72698_e; ++l)
              {
@@ -99,7 +94,7 @@
              }
          }
  
-@@ -290,8 +317,16 @@
+@@ -290,8 +312,16 @@
  
      public void func_72695_c(EntityPlayerMP p_72695_1_)
      {
@@ -118,71 +113,163 @@
  
          for (int k = i - this.field_72698_e; k <= i + this.field_72698_e; ++k)
          {
-@@ -327,16 +362,32 @@
+@@ -312,49 +342,55 @@
+ 
+     private boolean func_72684_a(int p_72684_1_, int p_72684_2_, int p_72684_3_, int p_72684_4_, int p_72684_5_)
+     {
+-        int i = p_72684_1_ - p_72684_3_;
+-        int j = p_72684_2_ - p_72684_4_;
+-
+-        if (i >= -p_72684_5_ && i <= p_72684_5_)
+-        {
+-            return j >= -p_72684_5_ && j <= p_72684_5_;
+-        }
+-        else
+-        {
+-            return false;
+-        }
++        return rangeOverlap(p_72684_1_-p_72684_5_, p_72684_1_+p_72684_5_, p_72684_3_-p_72684_5_, p_72684_3_+p_72684_5_, X_CHUNK_MASK)
++                && rangeOverlap(p_72684_2_-p_72684_5_, p_72684_2_+p_72684_5_, p_72684_4_-p_72684_5_, p_72684_4_+p_72684_5_, Z_CHUNK_MASK);
+     }
  
      public void func_72685_d(EntityPlayerMP p_72685_1_)
      {
 -        int i = (int)p_72685_1_.field_70165_t >> 4;
 -        int j = (int)p_72685_1_.field_70161_v >> 4;
-+        int i;
-+        int j;
+-        double d0 = p_72685_1_.field_71131_d - p_72685_1_.field_70165_t;
+-        double d1 = p_72685_1_.field_71132_e - p_72685_1_.field_70161_v;
+-        double d2 = d0 * d0 + d1 * d1;
++        int playerChunkX;
++        int playerChunkZ;
 +        // Fix the player chunk map trunkation in negative coords causing offsets in chunk loading CARPET-XCOM
-+        if(!CarpetSettings.playerChunkLoadingFix) {
-+            i = (int)p_72685_1_.field_70165_t >> 4;
-+            j = (int)p_72685_1_.field_70161_v >> 4;
++        if(CarpetSettings.playerChunkLoadingFix) {
++            playerChunkX = MathHelper.func_76128_c(p_72685_1_.field_70165_t) >> 4;
++            playerChunkZ = MathHelper.func_76128_c(p_72685_1_.field_70161_v) >> 4;
 +        } else {
-+            i = MathHelper.func_76128_c(p_72685_1_.field_70165_t) >> 4;
-+            j = MathHelper.func_76128_c(p_72685_1_.field_70161_v) >> 4;
++            playerChunkX = (int)p_72685_1_.field_70165_t >> 4;
++            playerChunkZ = (int)p_72685_1_.field_70161_v >> 4;
 +        }
-         double d0 = p_72685_1_.field_71131_d - p_72685_1_.field_70165_t;
-         double d1 = p_72685_1_.field_71132_e - p_72685_1_.field_70161_v;
-         double d2 = d0 * d0 + d1 * d1;
++        double dx = p_72685_1_.field_71131_d - p_72685_1_.field_70165_t;
++        double dz = p_72685_1_.field_71132_e - p_72685_1_.field_70161_v;
++        double d2 = dx * dx + dz * dz;
  
-         if (d2 >= 64.0D)
-         {
+-        if (d2 >= 64.0D)
+-        {
 -            int k = (int)p_72685_1_.field_71131_d >> 4;
 -            int l = (int)p_72685_1_.field_71132_e >> 4;
-+            int k;
-+            int l;
+-            int i1 = this.field_72698_e;
+-            int j1 = i - k;
+-            int k1 = j - l;
++        if (d2 >= 64.0D) {
++            int prevPlayerChunkX;
++            int prevPlayerChunkZ;
 +            // Fix the player chunk map trunkation in negative coords causing offsets in chunk loading CARPET-XCOM
-+            if(!CarpetSettings.playerChunkLoadingFix) {
-+                k = (int)p_72685_1_.field_71131_d >> 4;
-+                l = (int)p_72685_1_.field_71132_e >> 4;
+ 
+-            if (j1 != 0 || k1 != 0)
++            if(CarpetSettings.playerChunkLoadingFix) {
++                prevPlayerChunkX = MathHelper.func_76128_c(p_72685_1_.field_71131_d) >> 4;
++                prevPlayerChunkZ = MathHelper.func_76128_c(p_72685_1_.field_71132_e) >> 4;
 +            } else {
-+                k = MathHelper.func_76128_c(p_72685_1_.field_71131_d) >> 4;
-+                l = MathHelper.func_76128_c(p_72685_1_.field_71132_e) >> 4;
++                prevPlayerChunkX = (int)p_72685_1_.field_71131_d >> 4;
++                prevPlayerChunkZ = (int)p_72685_1_.field_71132_e >> 4;
 +            }
-             int i1 = this.field_72698_e;
-             int j1 = i - k;
-             int k1 = j - l;
-@@ -349,7 +400,7 @@
++
++            int viewRadius = this.field_72698_e;
++            int xDiff = playerChunkX - prevPlayerChunkX;
++            int zDiff = playerChunkZ - prevPlayerChunkZ;
++
++            if (xDiff != 0 || zDiff != 0)
+             {
+-                for (int l1 = i - i1; l1 <= i + i1; ++l1)
++                for (int chunkX = playerChunkX - viewRadius; chunkX <= playerChunkX + viewRadius; ++chunkX)
+                 {
+-                    for (int i2 = j - i1; i2 <= j + i1; ++i2)
++                    for (int chunkZ = playerChunkZ - viewRadius; chunkZ <= playerChunkZ + viewRadius; ++chunkZ)
                      {
-                         if (!this.func_72684_a(l1, i2, k, l, i1))
-                         {
+-                        if (!this.func_72684_a(l1, i2, k, l, i1))
+-                        {
 -                            this.func_187302_c(l1, i2).func_187276_a(p_72685_1_);
-+                            this.getOrCreateEntry(l1, i2, p_72685_1_).func_187276_a(p_72685_1_);
++                        if (!this.func_72684_a(chunkX, chunkZ, prevPlayerChunkX, prevPlayerChunkZ, viewRadius)) {
++                            this.getOrCreateEntry(chunkX, chunkZ, p_72685_1_).func_187276_a(p_72685_1_);
                          }
  
-                         if (!this.func_72684_a(l1 - j1, i2 - k1, i, j, i1))
-@@ -396,7 +447,7 @@
+-                        if (!this.func_72684_a(l1 - j1, i2 - k1, i, j, i1))
+-                        {
+-                            PlayerChunkMapEntry playerchunkmapentry = this.func_187301_b(l1 - j1, i2 - k1);
++                        if (!this.func_72684_a(chunkX - xDiff, chunkZ - zDiff, playerChunkX, playerChunkZ, viewRadius)) {
++                            PlayerChunkMapEntry playerchunkmapentry = this.func_187301_b(chunkX - xDiff, chunkZ - zDiff);
+ 
+                             if (playerchunkmapentry != null)
+                             {
+@@ -383,37 +419,34 @@
+ 
+         if (p_152622_1_ != this.field_72698_e)
+         {
+-            int i = p_152622_1_ - this.field_72698_e;
++            int increase = p_152622_1_ - this.field_72698_e;
+ 
+-            for (EntityPlayerMP entityplayermp : Lists.newArrayList(this.field_72699_b))
++            for (EntityPlayerMP player : Lists.newArrayList(this.field_72699_b))
+             {
+-                int j = (int)entityplayermp.field_70165_t >> 4;
+-                int k = (int)entityplayermp.field_70161_v >> 4;
++                int playerChunkX = (int)player.field_70165_t >> 4;
++                int playerChunkZ = (int)player.field_70161_v >> 4;
+ 
+-                if (i > 0)
+-                {
+-                    for (int j1 = j - p_152622_1_; j1 <= j + p_152622_1_; ++j1)
++                if (increase > 0) {
++                    for (int chunkX = playerChunkX - p_152622_1_; chunkX <= playerChunkX + p_152622_1_; ++chunkX)
                      {
-                         for (int k1 = k - p_152622_1_; k1 <= k + p_152622_1_; ++k1)
+-                        for (int k1 = k - p_152622_1_; k1 <= k + p_152622_1_; ++k1)
++                        for (int chunkZ = playerChunkZ - p_152622_1_; chunkZ <= playerChunkZ + p_152622_1_; ++chunkZ)
                          {
 -                            PlayerChunkMapEntry playerchunkmapentry = this.func_187302_c(j1, k1);
-+                            PlayerChunkMapEntry playerchunkmapentry = this.getOrCreateEntry(j1, k1, entityplayermp);
++                            PlayerChunkMapEntry playerchunkmapentry = this.getOrCreateEntry(chunkX, chunkZ, player);
  
-                             if (!playerchunkmapentry.func_187275_d(entityplayermp))
+-                            if (!playerchunkmapentry.func_187275_d(entityplayermp))
++                            if (!playerchunkmapentry.func_187275_d(player))
                              {
-@@ -413,7 +464,7 @@
-                         {
-                             if (!this.func_72684_a(l, i1, j, k, p_152622_1_))
-                             {
--                                this.func_187302_c(l, i1).func_187277_b(entityplayermp);
-+                                this.getOrCreateEntry(l, i1, entityplayermp).func_187277_b(entityplayermp);
+-                                playerchunkmapentry.func_187276_a(entityplayermp);
++                                playerchunkmapentry.func_187276_a(player);
                              }
                          }
                      }
-@@ -460,7 +511,28 @@
+-                }
+-                else
+-                {
+-                    for (int l = j - this.field_72698_e; l <= j + this.field_72698_e; ++l)
++                } else {
++                    for (int chunkX = playerChunkX - this.field_72698_e; chunkX <= playerChunkX + this.field_72698_e; ++chunkX)
+                     {
+-                        for (int i1 = k - this.field_72698_e; i1 <= k + this.field_72698_e; ++i1)
++                        for (int chunkZ = playerChunkZ - this.field_72698_e; chunkZ <= playerChunkZ + this.field_72698_e; ++chunkZ)
+                         {
+-                            if (!this.func_72684_a(l, i1, j, k, p_152622_1_))
++                            if (!this.func_72684_a(chunkX, chunkZ, playerChunkX, playerChunkZ, p_152622_1_))
+                             {
+-                                this.func_187302_c(l, i1).func_187277_b(entityplayermp);
++                                this.getOrCreateEntry(chunkX, chunkZ, player).func_187277_b(player);
+                             }
+                         }
+                     }
+@@ -438,9 +471,13 @@
+ 
+     private static long func_187307_d(int p_187307_0_, int p_187307_1_)
+     {
+-        return (long)p_187307_0_ + 2147483647L | (long)p_187307_1_ + 2147483647L << 32;
++        return (long)(p_187307_0_&X_CHUNK_MASK) + 2147483647L | (long)(p_187307_1_&Z_CHUNK_MASK) + 2147483647L << 32;
+     }
+ 
++    public int getPlayerViewRadius() {
++        return field_72698_e;
++    }
++
+     public void func_187304_a(PlayerChunkMapEntry p_187304_1_)
+     {
+         this.field_72697_d.add(p_187304_1_);
+@@ -460,7 +497,28 @@
  
          if (chunk != null)
          {

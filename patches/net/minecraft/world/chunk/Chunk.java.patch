@@ -456,7 +456,42 @@
          int i = p_177443_1_.func_177958_n() & 15;
          int j = p_177443_1_.func_177956_o();
          int k = p_177443_1_.func_177952_p() & 15;
-@@ -819,6 +892,10 @@
+@@ -747,7 +820,7 @@
+     @Nullable
+     public TileEntity func_177424_a(BlockPos p_177424_1_, Chunk.EnumCreateEntityType p_177424_2_)
+     {
+-        TileEntity tileentity = this.field_150816_i.get(p_177424_1_);
++        TileEntity tileentity = this.field_150816_i.get(p_177424_1_.wrap());
+ 
+         if (tileentity == null)
+         {
+@@ -763,7 +836,7 @@
+         }
+         else if (tileentity.func_145837_r())
+         {
+-            this.field_150816_i.remove(p_177424_1_);
++            this.field_150816_i.remove(p_177424_1_.wrap());
+             return null;
+         }
+ 
+@@ -787,6 +860,7 @@
+ 
+         if (this.func_177435_g(p_177426_1_).func_177230_c() instanceof ITileEntityProvider)
+         {
++            p_177426_1_ = p_177426_1_.wrap();
+             if (this.field_150816_i.containsKey(p_177426_1_))
+             {
+                 ((TileEntity)this.field_150816_i.get(p_177426_1_)).func_145843_s();
+@@ -801,7 +875,7 @@
+     {
+         if (this.field_76636_d)
+         {
+-            TileEntity tileentity = this.field_150816_i.remove(p_177425_1_);
++            TileEntity tileentity = this.field_150816_i.remove(p_177425_1_.wrap());
+ 
+             if (tileentity != null)
+             {
+@@ -819,6 +893,10 @@
          {
              this.field_76637_e.func_175650_b(classinheritancemultimap);
          }
@@ -467,7 +502,7 @@
      }
  
      public void func_76623_d()
-@@ -964,13 +1041,40 @@
+@@ -964,13 +1042,40 @@
          {
              if (p_186034_1_.func_185933_a(this, this.field_76635_g, this.field_76647_h))
              {
@@ -509,7 +544,7 @@
              this.func_76630_e();
          }
      }
-@@ -1018,10 +1122,13 @@
+@@ -1018,10 +1123,13 @@
  
          this.field_150815_m = true;
  
@@ -527,7 +562,7 @@
  
          while (!this.field_177447_w.isEmpty())
          {
-@@ -1041,6 +1148,11 @@
+@@ -1041,6 +1149,11 @@
          return this.field_150815_m && this.field_76646_k && this.field_150814_l;
      }
  
@@ -539,7 +574,7 @@
      public boolean func_186035_j()
      {
          return this.field_150815_m;
-@@ -1389,4 +1501,67 @@
+@@ -1389,4 +1502,67 @@
          QUEUED,
          CHECK;
      }

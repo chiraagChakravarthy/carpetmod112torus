@@ -19,6 +19,24 @@
      private static void func_190560_a(String p_190560_0_, Class <? extends TileEntity > p_190560_1_)
      {
          field_190562_f.func_82595_a(new ResourceLocation(p_190560_0_), p_190560_1_);
+@@ -57,7 +62,7 @@
+ 
+     public void func_145839_a(NBTTagCompound p_145839_1_)
+     {
+-        this.field_174879_c = new BlockPos(p_145839_1_.func_74762_e("x"), p_145839_1_.func_74762_e("y"), p_145839_1_.func_74762_e("z"));
++        this.field_174879_c = new BlockPos(p_145839_1_.func_74762_e("x"), p_145839_1_.func_74762_e("y"), p_145839_1_.func_74762_e("z")).wrap();
+     }
+ 
+     public NBTTagCompound func_189515_b(NBTTagCompound p_189515_1_)
+@@ -258,7 +263,7 @@
+ 
+     public void func_174878_a(BlockPos p_174878_1_)
+     {
+-        this.field_174879_c = p_174878_1_.func_185334_h();
++        this.field_174879_c = p_174878_1_.func_185334_h().wrap();
+     }
+ 
+     public boolean func_183000_F()
 @@ -307,5 +312,6 @@
          func_190560_a("command_block", TileEntityCommandBlock.class);
          func_190560_a("shulker_box", TileEntityShulkerBox.class);

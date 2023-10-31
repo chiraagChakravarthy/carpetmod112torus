@@ -17,3 +17,18 @@
          this.field_149284_a = p_i47124_1_.field_76635_g;
          this.field_149282_b = p_i47124_1_.field_76647_h;
          this.field_149279_g = p_i47124_2_ == 65535;
+@@ -52,6 +55,14 @@
+         }
+     }
+ 
++    public void setChunkX(int chunkX) {
++        this.field_149284_a = chunkX;
++    }
++
++    public void setChunkZ(int chunkZ) {
++        this.field_149282_b = chunkZ;
++    }
++
+     public void func_148837_a(PacketBuffer p_148837_1_) throws IOException
+     {
+         this.field_149284_a = p_148837_1_.readInt();

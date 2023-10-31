@@ -1,12 +1,31 @@
 --- ../src-base/minecraft/net/minecraft/server/management/PlayerChunkMapEntry.java
 +++ ../src-work/minecraft/net/minecraft/server/management/PlayerChunkMapEntry.java
-@@ -19,25 +19,33 @@
+@@ -1,8 +1,11 @@
+ package net.minecraft.server.management;
+ 
++import carpet.torus.TorusUtil;
+ import com.google.common.base.Predicate;
+ import com.google.common.collect.Iterables;
+ import com.google.common.collect.Lists;
++
++import java.util.ArrayList;
+ import java.util.List;
+ import javax.annotation.Nullable;
+ import net.minecraft.entity.player.EntityPlayerMP;
+@@ -15,29 +18,40 @@
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.math.BlockPos;
+ import net.minecraft.util.math.ChunkPos;
++import net.minecraft.util.math.MathHelper;
+ import net.minecraft.world.chunk.Chunk;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
 +import carpet.CarpetSettings;
 +import carpet.carpetclient.CarpetClientChunkLogger;
 +import carpet.helpers.IPlayerSensitiveTileEntity;
++
++import static carpet.torus.TorusUtil.*;
 +
  public class PlayerChunkMapEntry
  {
@@ -42,7 +61,7 @@
      }
  
      public ChunkPos func_187264_a()
-@@ -53,6 +61,14 @@
+@@ -53,6 +67,14 @@
          }
          else
          {
@@ -57,7 +76,7 @@
              if (this.field_187283_c.isEmpty())
              {
                  this.field_187289_i = this.field_187282_b.func_72688_a().func_82737_E();
-@@ -65,13 +81,17 @@
+@@ -65,13 +87,17 @@
                  this.func_187278_c(p_187276_1_);
              }
          }
@@ -76,7 +95,7 @@
              {
                  p_187277_1_.field_71135_a.func_147359_a(new SPacketUnloadChunk(this.field_187284_d.field_77276_a, this.field_187284_d.field_77275_b));
              }
-@@ -80,9 +100,20 @@
+@@ -80,9 +106,20 @@
  
              if (this.field_187283_c.isEmpty())
              {
@@ -97,7 +116,7 @@
      }
  
      public boolean func_187268_a(boolean p_187268_1_)
-@@ -95,7 +126,10 @@
+@@ -95,7 +132,10 @@
          {
              if (p_187268_1_)
              {
@@ -108,7 +127,72 @@
              }
              else
              {
-@@ -248,12 +282,28 @@
+@@ -125,24 +165,57 @@
+             this.field_187287_g = 0;
+             this.field_187288_h = 0;
+             this.field_187290_j = true;
+-            Packet<?> packet = new SPacketChunkData(this.field_187286_f, 65535);
+-
+-            for (EntityPlayerMP entityplayermp : this.field_187283_c)
++            SPacketChunkData packet = new SPacketChunkData(this.field_187286_f, 65535);
++            for (EntityPlayerMP player : this.field_187283_c)
+             {
+-                entityplayermp.field_71135_a.func_147359_a(packet);
+-                this.field_187282_b.func_72688_a().func_73039_n().func_85172_a(entityplayermp, this.field_187286_f);
++                instancesInRangeOf(player).forEach((chunkPos -> {
++                    packet.setChunkX(chunkPos.field_77276_a);
++                    packet.setChunkZ(chunkPos.field_77275_b);
++                    player.field_71135_a.func_147359_a(packet);
++                }));
++                this.field_187282_b.func_72688_a().func_73039_n().func_85172_a(player, this.field_187286_f);//TODO
+             }
+ 
+             return true;
+         }
+     }
+ 
++    private List<ChunkPos> instancesInRangeOf(EntityPlayerMP player){
++        int playerChunkX;
++        int playerChunkZ;
++        int radius = field_187282_b.getPlayerViewRadius();
++
++        if(CarpetSettings.playerChunkLoadingFix) {
++            playerChunkX = MathHelper.func_76128_c(player.field_70165_t) >> 4;
++            playerChunkZ = MathHelper.func_76128_c(player.field_70161_v) >> 4;
++        } else {
++            playerChunkX = (int)player.field_70165_t >> 4;
++            playerChunkZ = (int)player.field_70161_v >> 4;
++        }
++
++        List<ChunkPos> chunks = new ArrayList<>();
++        for(int chunkX = ((playerChunkX-radius) & (~X_CHUNK_MASK)) + (field_187286_f.field_76635_g&X_CHUNK_MASK); chunkX <= playerChunkX+radius; chunkX += CHUNK_HEIGHT){
++            for(int chunkZ = ((playerChunkZ-radius)&(~Z_CHUNK_MASK)) + (field_187286_f.field_76647_h&Z_CHUNK_MASK); chunkZ <= playerChunkZ+radius; chunkZ += CHUNK_WIDTH){
++                chunks.add(new ChunkPos(chunkX, chunkZ));
++            }
++        }
++        return chunks;
++    }
++
++
++
+     public void func_187278_c(EntityPlayerMP p_187278_1_)
+     {
+         if (this.field_187290_j)
+         {
+-            p_187278_1_.field_71135_a.func_147359_a(new SPacketChunkData(this.field_187286_f, 65535));
+-            this.field_187282_b.func_72688_a().func_73039_n().func_85172_a(p_187278_1_, this.field_187286_f);
++            SPacketChunkData packet = new SPacketChunkData(field_187286_f, 65535);
++            instancesInRangeOf(p_187278_1_).forEach((chunkPos -> {
++                packet.setChunkX(chunkPos.field_77276_a);
++                packet.setChunkZ(chunkPos.field_77275_b);
++                p_187278_1_.field_71135_a.func_147359_a(packet);
++            }));
++
++            this.field_187282_b.func_72688_a().func_73039_n().func_85172_a(p_187278_1_, this.field_187286_f);//TODO
+         }
+     }
+ 
+@@ -248,12 +321,28 @@
      {
          if (p_187273_1_ != null)
          {
@@ -137,3 +221,15 @@
          }
      }
  
+@@ -274,8 +363,9 @@
+         for (int j = this.field_187283_c.size(); i < j; ++i)
+         {
+             EntityPlayerMP entityplayermp = this.field_187283_c.get(i);
+-
+-            if (p_187271_3_.apply(entityplayermp) && this.field_187284_d.func_185327_a(entityplayermp) < p_187271_1_ * p_187271_1_)
++            float dx = (float) TorusUtil.wrap(entityplayermp.field_70165_t-field_187284_d.field_77276_a, TorusUtil.HEIGHT),
++                    dy = (float) TorusUtil.wrap(entityplayermp.field_70161_v-field_187284_d.field_77275_b, TorusUtil.WIDTH);
++            if (p_187271_3_.apply(entityplayermp) && dx*dx+dy*dy < p_187271_1_ * p_187271_1_)
+             {
+                 return true;
+             }
