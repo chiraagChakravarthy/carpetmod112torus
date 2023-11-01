@@ -1,0 +1,12 @@
+--- ../src-base/minecraft/net/minecraft/util/math/Vec3i.java
++++ ../src-work/minecraft/net/minecraft/util/math/Vec3i.java
+@@ -3,6 +3,9 @@
+ import com.google.common.base.MoreObjects;
+ import javax.annotation.concurrent.Immutable;
+ 
++import static carpet.torus.TorusUtil.X_MASK;
++import static carpet.torus.TorusUtil.Z_MASK;
++
+ @Immutable
+ public class Vec3i implements Comparable<Vec3i>
+ {
